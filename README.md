@@ -93,3 +93,7 @@ The current tooltip shows lines and file count. Could add a computed complexity 
 ### Configurable thresholds
 
 Store user preferences via `GM.getValue` / `GM.setValue` so age thresholds (e.g. green ≤ 24 h, yellow ≤ 72 h) and size/complexity breakpoints can be adjusted without editing the script.
+
+### Show "days left open" on the PR details page
+
+We show a pill for the days a PR has been open on the list page, but not on the details page, feels like it could be useful.
