@@ -60,7 +60,7 @@ On the first visit to a PR detail page the script prompts for a **fine-grained P
 3. Required permission: **Pull requests — Read-only** (or `repo` for classic tokens)
 4. Paste the token into the prompt
 
-The token is stored locally via `GM_getValue` / `GM_setValue` (never leaves your browser). To clear it and re-enter, open the Tampermonkey dashboard → Storage and delete the `github_pat` key, or simply visit any PR and enter an empty value when prompted on the next auth failure.
+The token is stored locally via `GM.getValue` / `GM.setValue` (never leaves your browser). To clear it and re-enter, open the Tampermonkey dashboard → Storage and delete the `github_pat` key, or simply visit any PR and enter an empty value when prompted on the next auth failure.
 
 ---
 
@@ -77,6 +77,24 @@ The token is stored locally via `GM_getValue` / `GM_setValue` (never leaves your
 | Review / CI status         | ✅                        | —                            | —                       |
 
 The script is intentionally focused: it adds the two most actionable at-a-glance signals (age + size) without requiring you to configure CI on every repo or install a Chrome-only extension.
+
+---
+
+## Roadmap
+
+### Age badge: show hours for fresh PRs
+Currently a PR opened 2 hours ago shows `0d`. Should show `2h` (or similar) for PRs under 24 hours old, matching PR Pulse's behaviour.
+
+### Complexity badge on PR list
+A file-count-based Low / Med / High / Critical badge on each list row, inspired by PR Pulse's complexity score. Thresholds (approximate): Low 0–25 files, Med 26–50, High 51–75, Critical 76+. Would require an API call per visible PR row — needs rate-limit consideration.
+
+### Richer size badge tooltip
+The current tooltip shows lines and file count. Could add a computed complexity score (0–100) to match PR Pulse's `Complexity Score: 85/100 / Files: 30 / Lines: +651 / −56` hover breakdown.
+
+### Configurable thresholds
+Store user preferences via `GM.getValue` / `GM.setValue` so age thresholds (e.g. green ≤ 24 h, yellow ≤ 72 h) and size/complexity breakpoints can be adjusted without editing the script.
+
+---
 
 For Userscript the valid keys and grants for metadata are:
 
