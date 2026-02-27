@@ -15,28 +15,28 @@ No Chrome extension required. Works anywhere Tampermonkey or Violentmonkey runs 
 
 Each PR in `github.com/*/pulls` gets a colour-coded pill showing how many days it has been open.
 
-| Age | Colour | Meaning |
-|-----|--------|---------|
-| ≤ 3 d | Green | Fresh — no action needed |
-| ≤ 7 d | Yellow | Getting stale |
-| ≤ 14 d | Orange | Needs attention |
-| ≤ 30 d | Red | Overdue |
+| Age    | Colour   | Meaning                        |
+| ------ | -------- | ------------------------------ |
+| ≤ 3 d  | Green    | Fresh — no action needed       |
+| ≤ 7 d  | Yellow   | Getting stale                  |
+| ≤ 14 d | Orange   | Needs attention                |
+| ≤ 30 d | Red      | Overdue                        |
 | > 30 d | Dark red | Long-running — review priority |
 
 ### PR Detail — Size Badges
 
 On a single PR page (`github.com/*/pull/123`) a `size/XS` … `size/XXL` badge is appended to the PR title, mirroring the label that [microsoft/PR-Metrics](https://github.com/microsoft/PR-Metrics) adds automatically in CI.
 
-| Label | Total lines changed | Colour |
-|-------|---------------------|--------|
-| `size/XS` | ≤ 10 | Dark green |
-| `size/S` | ≤ 50 | Green |
-| `size/M` | ≤ 250 | Yellow |
-| `size/L` | ≤ 500 | Orange |
-| `size/XL` | ≤ 1 000 | Red |
-| `size/XXL` | > 1 000 | Dark red |
+| Label      | Total lines changed | Colour     |
+| ---------- | ------------------- | ---------- |
+| `size/XS`  | ≤ 10                | Dark green |
+| `size/S`   | ≤ 50                | Green      |
+| `size/M`   | ≤ 250               | Yellow     |
+| `size/L`   | ≤ 500               | Orange     |
+| `size/XL`  | ≤ 1 000             | Red        |
+| `size/XXL` | > 1 000             | Dark red   |
 
-> **Note:** These thresholds differ from the microsoft/PR-Metrics *defaults* (base 200, growth ×2). Edit the `SIZES` array in the script to match whatever your team has configured in CI.
+> **Note:** These thresholds differ from the microsoft/PR-Metrics _defaults_ (base 200, growth ×2). Edit the `SIZES` array in the script to match whatever your team has configured in CI.
 
 Hovering the badge shows the full breakdown: `+additions / −deletions` and file count.
 
@@ -66,14 +66,14 @@ The token is stored locally via `GM_getValue` / `GM_setValue` (never leaves your
 
 ## How It Relates to PR Pulse & microsoft/PR-Metrics
 
-| Capability | PR Pulse (extension) | microsoft/PR-Metrics (CI) | This script |
-|---|---|---|---|
-| PR age visibility | ✅ colour-coded staleness | — | ✅ age badge on list |
-| PR size label | — | ✅ adds `size/*` label in CI | ✅ badge on detail page |
-| Requires CI setup | — | ✅ | — |
-| Requires browser extension | ✅ | — | Userscript manager only |
-| Works on all GitHub repos | ✅ | Configured per-repo | ✅ |
-| Jira integration | ✅ | — | — |
-| Review / CI status | ✅ | — | — |
+| Capability                 | PR Pulse (extension)      | microsoft/PR-Metrics (CI)    | This script             |
+| -------------------------- | ------------------------- | ---------------------------- | ----------------------- |
+| PR age visibility          | ✅ colour-coded staleness | —                            | ✅ age badge on list    |
+| PR size label              | —                         | ✅ adds `size/*` label in CI | ✅ badge on detail page |
+| Requires CI setup          | —                         | ✅                           | —                       |
+| Requires browser extension | ✅                        | —                            | Userscript manager only |
+| Works on all GitHub repos  | ✅                        | Configured per-repo          | ✅                      |
+| Jira integration           | ✅                        | —                            | —                       |
+| Review / CI status         | ✅                        | —                            | —                       |
 
 The script is intentionally focused: it adds the two most actionable at-a-glance signals (age + size) without requiring you to configure CI on every repo or install a Chrome-only extension.
