@@ -23,18 +23,18 @@ Each PR in `github.com/*/pulls` gets a colour-coded pill showing how long it has
 | ≤ 30 d | Red      | Overdue                        |
 | > 30 d | Dark red | Long-running — review priority |
 
-Inspired by [PR Pulse](https://chromewebstore.google.com/detail/pr-pulse/ffmlmohnpbpplgcmkjlojmbaaeephblg).
+Inspired by [PR Pulse by CodePulse](https://chromewebstore.google.com/detail/pr-pulse-by-codepulse/gilemckpkkljmdmhgnangdembehklimi).
 
 ### PR List + PR Detail — Complexity Badges
 
 A **Low / Medium / High / Critical** badge appears next to each PR title on list pages, and next to the PR status badge on the detail page.
 
-| Label      | Score  | Colour |
-| ---------- | ------ | ------ |
-| `Low`      | ≤ 25   | Green  |
-| `Medium`   | ≤ 50   | Blue   |
-| `High`     | ≤ 75   | Orange |
-| `Critical` | > 75   | Red    |
+| Label      | Score | Colour |
+| ---------- | ----- | ------ |
+| `Low`      | ≤ 25  | Green  |
+| `Medium`   | ≤ 50  | Blue   |
+| `High`     | ≤ 75  | Orange |
+| `Critical` | > 75  | Red    |
 
 Score formula (0–100):
 
@@ -74,12 +74,12 @@ The token is stored locally via `GM.getValue` / `GM.setValue` and never leaves y
 
 ## How It Relates to PR Pulse & microsoft/PR-Metrics
 
-| Capability                 | PR Pulse (extension)      | microsoft/PR-Metrics (CI)    | This script                     |
-| -------------------------- | ------------------------- | ---------------------------- | ------------------------------- |
-| PR age visibility          | ✅ colour-coded staleness | —                            | ✅ age badge on list            |
+| Capability                 | PR Pulse (extension)      | microsoft/PR-Metrics (CI)    | This script                          |
+| -------------------------- | ------------------------- | ---------------------------- | ------------------------------------ |
+| PR age visibility          | ✅ colour-coded staleness | —                            | ✅ age badge on list                 |
 | PR complexity / size       | —                         | ✅ adds `size/*` label in CI | ✅ complexity badge on list + detail |
-| Requires CI setup          | —                         | ✅                           | —                               |
-| Requires browser extension | ✅                        | —                            | Userscript manager only         |
-| Works on all GitHub repos  | ✅                        | Configured per-repo          | ✅                              |
-| Jira integration           | ✅                        | —                            | —                               |
-| Review / CI status         | ✅                        | —                            | —                               |
+| Requires CI setup          | —                         | ✅                           | —                                    |
+| Requires browser extension | ✅                        | —                            | Userscript manager only              |
+| Works on all GitHub repos  | ✅                        | Configured per-repo          | ✅                                   |
+| Jira integration           | ✅                        | —                            | —                                    |
+| Review / CI status         | ✅                        | —                            | —                                    |
