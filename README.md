@@ -85,11 +85,3 @@ The script is intentionally focused: it adds the two most actionable at-a-glance
 ### Complexity badge on PR list
 
 A file-count-based Low / Med / High / Critical badge on each list row, inspired by PR Pulse's complexity score. Thresholds (approximate): Low 0–25 files, Med 26–50, High 51–75, Critical 76+. Would require an API call per visible PR row — needs rate-limit consideration.
-
-### Configurable thresholds
-
-Store user preferences via `GM.getValue` / `GM.setValue` so age thresholds (e.g. green ≤ 24 h, yellow ≤ 72 h) and size/complexity breakpoints can be adjusted without editing the script.
-
-### Show "days left open" on the PR details page
-
-We show a pill for the days a PR has been open on the list page, but not on the details page, feels like it could be useful.
