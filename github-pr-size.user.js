@@ -172,20 +172,23 @@
       "border-radius: 12px",
       `background: ${size.bg}`,
       `color: ${size.fg}`,
-      "font-size: 12px",
       "font-weight: 600",
       "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      "vertical-align: middle",
-      "margin-left: 8px",
       "cursor: default",
     ].join("; ");
-    badge.textContent = `size/${size.label}`;
+    badge.textContent = size.label;
 
     const titleEl = document.querySelector(
       'h1[class*="prc-PageHeader-Title"], .js-issue-title, [data-testid="issue-title"], h1.gh-header-title',
     );
     if (!titleEl) return;
-    titleEl.insertAdjacentElement("afterend", badge);
+    const titleFontSize = parseFloat(getComputedStyle(titleEl).fontSize);
+    badge.style.fontSize = `${titleFontSize * 0.8}px`;
+    titleEl.style.display = "flex";
+    titleEl.style.alignItems = "center";
+    titleEl.style.flexWrap = "wrap";
+    titleEl.style.gap = "8px";
+    titleEl.prepend(badge);
 
     // Re-inject if React hydration removes our badge
     const removalObserver = new MutationObserver(() => {
