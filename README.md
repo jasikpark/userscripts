@@ -44,7 +44,7 @@ Hovering the badge shows the full breakdown: `+additions / −deletions` and fil
 
 ## Installation
 
-1. Install [Tampermonkey](https://www.tampermonkey.net/) or [Violentmonkey](https://violentmonkey.github.io/) in your browser.
+1. Install [Tampermonkey](https://www.tampermonkey.net/) or [Violentmonkey](https://violentmonkey.github.io/) in your browser. Or https://github.com/quoid/userscripts
 2. Open [`github-pr-size.user.js`](./github-pr-size.user.js) — your userscript manager will detect the `// ==UserScript==` header and offer to install it. Click **Install**.
 
 ---
