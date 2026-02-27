@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GitHub PR Size
 // @namespace    https://jasik.xyz
-// @version      1.2.0
+// @version      1.3.0
 // @description  Age badges on PR list + size badge on PR detail (matches team PR-Metrics thresholds). Requires Safari 15.4+ / Chrome 92+.
 // @match        https://github.com/*/*/pull/*
 // @match        https://github.com/*/*/pulls*
@@ -255,6 +255,126 @@
     removalObserver.observe(document.body, { childList: true, subtree: true });
   }
 
+  // ── Complexity badge (PR list) ────────────────────────────────────────────
+
+  // href → pr data | "pending" | "error"
+  const listPrCache = new Map();
+
+  function renderComplexityBadgeForRow(row, { additions, deletions, changed_files }) {
+    if (row.querySelector(".gh-pr-complexity")) return;
+
+    const totalLines = additions + deletions;
+    const score = complexityScore(totalLines, changed_files);
+    const tier = getTier(score);
+
+    const badge = document.createElement("span");
+    badge.className = "gh-pr-complexity";
+    badge.style.cssText = [
+      "display: inline-flex",
+      "align-items: center",
+      "padding-inline: 6px",
+      "border-radius: 8px",
+      `background: ${tier.bg}`,
+      `color: ${tier.fg}`,
+      `border: 1px solid ${tier.bg}`,
+      "font-size: 11px",
+      "font-weight: 600",
+      "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      "vertical-align: middle",
+      "margin-left: 6px",
+      "cursor: default",
+      "line-height: 18px",
+    ].join("; ");
+    badge.textContent = tier.label;
+
+    const tooltip = document.createElement("div");
+    tooltip.popover = "manual";
+    tooltip.style.cssText = [
+      "position: fixed",
+      "inset: unset",
+      "margin: 0",
+      "background: #161b22",
+      "border: 1px solid #30363d",
+      "border-radius: 8px",
+      "padding: 12px 16px",
+      "color: #e6edf3",
+      "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      "font-size: 13px",
+      "line-height: 1.5",
+      "width: max-content",
+      "max-width: 220px",
+      "box-shadow: 0 8px 24px rgba(0,0,0,0.5)",
+      "pointer-events: none",
+      "z-index: 10000",
+    ].join("; ");
+    tooltip.innerHTML =
+      `<div style="font-weight:600;margin-bottom:4px">Complexity Score: ${score}/100</div>` +
+      `<div>Files: ${changed_files}</div>` +
+      `<div>Lines: +${additions.toLocaleString()} / \u2212${deletions.toLocaleString()}</div>` +
+      `<hr style="border:none;border-top:1px solid #30363d;margin:8px 0 6px">` +
+      `<div style="color:#8b949e;font-size:11px">\u26a1 github-pr-size</div>`;
+    document.body.appendChild(tooltip);
+
+    badge.addEventListener("mouseenter", () => {
+      tooltip.showPopover();
+      const r = badge.getBoundingClientRect();
+      let top = r.bottom + 8;
+      let left = r.left;
+      if (top + tooltip.offsetHeight > window.innerHeight - 8)
+        top = r.top - tooltip.offsetHeight - 8;
+      if (left + tooltip.offsetWidth > window.innerWidth - 8)
+        left = window.innerWidth - tooltip.offsetWidth - 8;
+      tooltip.style.top = `${top}px`;
+      tooltip.style.left = `${left}px`;
+    });
+    badge.addEventListener("mouseleave", () => tooltip.hidePopover());
+
+    const ageBadge = row.querySelector(".gh-pr-age");
+    const titleEl = row.querySelector(
+      "a.markdown-title, a[data-hovercard-type='pull_request'], .js-issue-row-title a",
+    );
+    if (ageBadge) ageBadge.insertAdjacentElement("afterend", badge);
+    else if (titleEl) titleEl.insertAdjacentElement("afterend", badge);
+  }
+
+  async function renderComplexityBadges() {
+    const token = await GM.getValue("github_pat", "");
+    if (!token) return;
+
+    const rows = document.querySelectorAll(
+      "[id^='issue_'], .js-issue-row, [data-hovercard-type='pull_request']",
+    );
+
+    rows.forEach((row) => {
+      if (row.querySelector(".gh-pr-complexity")) return;
+
+      const titleEl = row.querySelector(
+        "a.markdown-title, a[data-hovercard-type='pull_request'], .js-issue-row-title a",
+      );
+      if (!titleEl) return;
+
+      const href = titleEl.getAttribute("href") ?? "";
+      const match = href.match(/^\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+      if (!match) return;
+
+      const cached = listPrCache.get(href);
+      if (cached && cached !== "pending" && cached !== "error") {
+        renderComplexityBadgeForRow(row, cached);
+        return;
+      }
+      if (cached === "pending" || cached === "error") return;
+
+      listPrCache.set(href, "pending");
+      const [, owner, repo, prNumber] = match;
+      fetchPR(owner, repo, prNumber, token)
+        .then((pr) => {
+          listPrCache.set(href, pr);
+          renderComplexityBadgeForRow(row, pr);
+        })
+        .catch(() => listPrCache.set(href, "error"));
+    });
+  }
+
   let cachedPr = null;
   let cachedPrPath = null;
 
@@ -295,7 +415,11 @@
       runSizeBadge(owner, repo, prNumber);
     } else if (listMatch) {
       renderAgeBadges();
-      listObserver = new MutationObserver(renderAgeBadges);
+      renderComplexityBadges();
+      listObserver = new MutationObserver(() => {
+        renderAgeBadges();
+        renderComplexityBadges();
+      });
       listObserver.observe(
         document.querySelector(".js-issue-list, #js-issues-toolbar") ??
           document.body,

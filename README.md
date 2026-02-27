@@ -82,6 +82,3 @@ The script is intentionally focused: it adds the two most actionable at-a-glance
 
 ## Roadmap
 
-### Complexity badge on PR list
-
-A file-count-based Low / Med / High / Critical badge on each list row, inspired by PR Pulse's complexity score. Thresholds (approximate): Low 0–25 files, Med 26–50, High 51–75, Critical 76+. Would require an API call per visible PR row — needs rate-limit consideration.
