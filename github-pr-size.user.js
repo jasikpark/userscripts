@@ -161,20 +161,35 @@
     });
   }
 
+  const COMPLEXITY_CRITICAL_FILES = 20;
+  const COMPLEXITY_CRITICAL_LINES = 1000;
+
+  function complexityScore(totalLines, files) {
+    return Math.min(
+      100,
+      Math.round(
+        (files / COMPLEXITY_CRITICAL_FILES) * 50 +
+        (totalLines / COMPLEXITY_CRITICAL_LINES) * 50,
+      ),
+    );
+  }
+
   function renderSizeBadge({ additions, deletions, changed_files }) {
     if (document.querySelector(".gh-pr-size")) return; // already rendered
 
     const totalLines = additions + deletions;
     const size = getSize(totalLines);
+    const score = complexityScore(totalLines, changed_files);
 
     const badge = document.createElement("span");
     badge.className = "gh-pr-size";
-    badge.title = `${totalLines.toLocaleString()} lines (${additions.toLocaleString()}+ / ${deletions.toLocaleString()}−) across ${changed_files} files`;
     badge.style.cssText = [
       "display: inline-flex",
       "align-items: center",
-      "padding: 2px 8px",
-      "border-radius: 12px",
+      "justify-content: center",
+      "padding: 4px 10px",
+      "min-width: 2.5em",
+      "border-radius: 999px",
       `background: ${size.bg}`,
       `color: ${size.fg}`,
       "font-weight: 600",
@@ -182,6 +197,53 @@
       "cursor: default",
     ].join("; ");
     badge.textContent = size.label;
+
+    // ── Popover tooltip ───────────────────────────────────────────────────────
+    const tooltip = document.createElement("div");
+    tooltip.popover = "manual";
+    tooltip.style.cssText = [
+      "position: fixed",
+      "inset: unset",
+      "margin: 0",
+      "background: #161b22",
+      "border: 1px solid #30363d",
+      "border-radius: 8px",
+      "padding: 12px 16px",
+      "color: #e6edf3",
+      "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      "font-size: 13px",
+      "line-height: 1.5",
+      "width: max-content",
+      "max-width: 220px",
+      "box-shadow: 0 8px 24px rgba(0,0,0,0.5)",
+      "pointer-events: none",
+      "z-index: 10000",
+    ].join("; ");
+    tooltip.innerHTML =
+      `<div style="font-weight:600;margin-bottom:4px">Complexity Score: ${score}/100</div>` +
+      `<div>Files: ${changed_files}</div>` +
+      `<div>Lines: +${additions.toLocaleString()} / \u2212${deletions.toLocaleString()}</div>` +
+      `<hr style="border:none;border-top:1px solid #30363d;margin:8px 0 6px">` +
+      `<div style="color:#8b949e;font-size:11px">\u26a1 github-pr-size</div>`;
+    document.body.appendChild(tooltip);
+
+    function positionTooltip() {
+      const r = badge.getBoundingClientRect();
+      let top = r.bottom + 8;
+      let left = r.left;
+      if (top + tooltip.offsetHeight > window.innerHeight - 8)
+        top = r.top - tooltip.offsetHeight - 8;
+      if (left + tooltip.offsetWidth > window.innerWidth - 8)
+        left = window.innerWidth - tooltip.offsetWidth - 8;
+      tooltip.style.top = `${top}px`;
+      tooltip.style.left = `${left}px`;
+    }
+
+    badge.addEventListener("mouseenter", () => {
+      tooltip.showPopover();
+      positionTooltip();
+    });
+    badge.addEventListener("mouseleave", () => tooltip.hidePopover());
 
     const titleEl = document.querySelector(
       'h1[class*="prc-PageHeader-Title"], .js-issue-title, [data-testid="issue-title"], h1.gh-header-title',
@@ -199,6 +261,7 @@
     const removalObserver = new MutationObserver(() => {
       if (!document.contains(badge)) {
         removalObserver.disconnect();
+        tooltip.remove();
         if (cachedPr) renderSizeBadge(cachedPr);
       }
     });
