@@ -93,29 +93,21 @@
   // ── Size badge (PR detail page) ───────────────────────────────────────────
   // Uses GitHub API since line counts aren't in the DOM
 
-  function getSizes() {
-    return isDark()
+  function getTier(score) {
+    const tiers = isDark()
       ? [
-          { label: "XS",  max: 10,       bg: "#238636", fg: "#fff" },
-          { label: "S",   max: 50,       bg: "#347d39", fg: "#fff" },
-          { label: "M",   max: 250,      bg: "#9e6a03", fg: "#fff" },
-          { label: "L",   max: 500,      bg: "#bd561d", fg: "#fff" },
-          { label: "XL",  max: 1000,     bg: "#da3633", fg: "#fff" },
-          { label: "XXL", max: Infinity, bg: "#b62324", fg: "#fff" },
+          { label: "Low",      max: 25,  bg: "#238636", fg: "#fff" },
+          { label: "Medium",   max: 50,  bg: "#1f6feb", fg: "#fff" },
+          { label: "High",     max: 75,  bg: "#9e6a03", fg: "#fff" },
+          { label: "Critical", max: 100, bg: "#da3633", fg: "#fff" },
         ]
       : [
-          { label: "XS",  max: 10,       bg: "#1a7f37", fg: "#fff" },
-          { label: "S",   max: 50,       bg: "#4c9d0e", fg: "#fff" },
-          { label: "M",   max: 250,      bg: "#9a6700", fg: "#fff" },
-          { label: "L",   max: 500,      bg: "#cf6c0f", fg: "#fff" },
-          { label: "XL",  max: 1000,     bg: "#d1242f", fg: "#fff" },
-          { label: "XXL", max: Infinity, bg: "#6e1c1c", fg: "#fff" },
+          { label: "Low",      max: 25,  bg: "#1a7f37", fg: "#fff" },
+          { label: "Medium",   max: 50,  bg: "#0969da", fg: "#fff" },
+          { label: "High",     max: 75,  bg: "#cf6c0f", fg: "#fff" },
+          { label: "Critical", max: 100, bg: "#d1242f", fg: "#fff" },
         ];
-  }
-
-  function getSize(lines) {
-    const sizes = getSizes();
-    return sizes.find((s) => lines <= s.max) ?? sizes.at(-1);
+    return tiers.find((t) => score <= t.max) ?? tiers.at(-1);
   }
 
   async function getOrPromptToken() {
@@ -178,8 +170,8 @@
     if (document.querySelector(".gh-pr-size")) return; // already rendered
 
     const totalLines = additions + deletions;
-    const size = getSize(totalLines);
     const score = complexityScore(totalLines, changed_files);
+    const tier = getTier(score);
 
     const badge = document.createElement("span");
     badge.className = "gh-pr-size";
@@ -187,16 +179,17 @@
       "display: inline-flex",
       "align-items: center",
       "justify-content: center",
-      "padding: 4px 10px",
-      "min-width: 2.5em",
+      "padding: 0 12px",
+      "height: 32px",
       "border-radius: 999px",
-      `background: ${size.bg}`,
-      `color: ${size.fg}`,
+      `background: ${tier.bg}`,
+      `color: ${tier.fg}`,
+      "font-size: 14px",
       "font-weight: 600",
       "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       "cursor: default",
     ].join("; ");
-    badge.textContent = size.label;
+    badge.textContent = tier.label;
 
     // ── Popover tooltip ───────────────────────────────────────────────────────
     const tooltip = document.createElement("div");
@@ -245,17 +238,11 @@
     });
     badge.addEventListener("mouseleave", () => tooltip.hidePopover());
 
-    const titleEl = document.querySelector(
-      'h1[class*="prc-PageHeader-Title"], .js-issue-title, [data-testid="issue-title"], h1.gh-header-title',
+    const stateEl = document.querySelector(
+      "span[data-status], .State, .gh-header-meta .State",
     );
-    if (!titleEl) return;
-    const titleFontSize = parseFloat(getComputedStyle(titleEl).fontSize);
-    badge.style.fontSize = `${titleFontSize * 0.8}px`;
-    titleEl.style.display = "flex";
-    titleEl.style.alignItems = "center";
-    titleEl.style.flexWrap = "wrap";
-    titleEl.style.gap = "8px";
-    titleEl.prepend(badge);
+    if (!stateEl) return;
+    stateEl.insertAdjacentElement("afterend", badge);
 
     // Re-inject if React hydration removes our badge
     const removalObserver = new MutationObserver(() => {
