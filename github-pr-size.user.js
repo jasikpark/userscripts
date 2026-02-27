@@ -5,6 +5,7 @@
 // @description  Age badges on PR list + size badge on PR detail (matches team PR-Metrics thresholds). Requires Safari 15.4+ / Chrome 92+.
 // @match        https://github.com/*/*/pull/*
 // @match        https://github.com/*/*/pulls*
+// @match        https://github.com/pulls*
 // @grant        GM.xmlHttpRequest
 // @grant        GM.getValue
 // @grant        GM.setValue
@@ -233,7 +234,7 @@
     const detailMatch = location.pathname.match(
       /^\/([^/]+)\/([^/]+)\/pull\/(\d+)\/?$/,
     );
-    const listMatch = location.pathname.match(/^\/([^/]+)\/([^/]+)\/pulls/);
+    const listMatch = location.pathname.match(/^\/(?:[^/]+\/[^/]+\/)?pulls/);
 
     if (detailMatch) {
       const [, owner, repo, prNumber] = detailMatch;

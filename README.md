@@ -120,6 +120,3 @@ export const validMetaKeys = new Set([
 ]);
 ```
 
-# TODO
-
-- [ ] Add support for https://github.com/pulls?q=sort%3Aupdated-desc+is%3Apr+is%3Aopen+author%3A%40me+archived%3Afalse
