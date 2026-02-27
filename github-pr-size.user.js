@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GitHub PR Size
 // @namespace    https://jasik.xyz
-// @version      1.3.0
+// @version      1.4.0
 // @description  Age badges on PR list + size badge on PR detail (matches team PR-Metrics thresholds). Requires Safari 15.4+ / Chrome 92+.
 // @match        https://github.com/*/*/pull/*
 // @match        https://github.com/*/*/pulls*
@@ -221,6 +221,11 @@
   function renderSizeBadge({ additions, deletions, changed_files }) {
     if (document.querySelector(".gh-pr-size")) return; // already rendered
 
+    const stateEl = document.querySelector(
+      "span[data-status], .State, .gh-header-meta .State",
+    );
+    if (!stateEl) return;
+
     const totalLines = additions + deletions;
     const score = complexityScore(totalLines, changed_files);
     const tier = getTier(score);
@@ -246,10 +251,6 @@
     // ── Popover tooltip ───────────────────────────────────────────────────────
     const tooltip = createTooltip(badge, score, additions, deletions, changed_files);
 
-    const stateEl = document.querySelector(
-      "span[data-status], .State, .gh-header-meta .State",
-    );
-    if (!stateEl) return;
     stateEl.insertAdjacentElement("afterend", badge);
 
     // Re-inject if React hydration removes our badge
@@ -372,7 +373,7 @@
     }
 
     const detailMatch = location.pathname.match(
-      /^\/([^/]+)\/([^/]+)\/pull\/(\d+)\/?$/,
+      /^\/([^/]+)\/([^/]+)\/pull\/(\d+)(?:\/.*)?$/,
     );
     const listMatch = location.pathname.match(/^\/(?:[^/]+\/[^/]+\/)?pulls/);
 
