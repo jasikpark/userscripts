@@ -11,7 +11,7 @@
 // @connect      api.github.com
 // ==/UserScript==
 
-(function () {
+(() => {
   // ── Age badge colors (PR list) ────────────────────────────────────────────
   // Matches the style seen in PR Pulse: pill badge next to PR title
 
@@ -49,8 +49,8 @@
       badge.style.cssText = [
         "display: inline-flex",
         "align-items: center",
-        "padding: 0 6px",
-        "border-radius: 10px",
+        "padding-inline: 6px",
+        "border-radius: 8px",
         `background: ${bg}`,
         `color: ${fg}`,
         `border: 1px solid ${border}`,
