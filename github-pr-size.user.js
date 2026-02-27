@@ -11,15 +11,29 @@
 // ==/UserScript==
 
 (() => {
+  function isDark() {
+    const mode = document.documentElement.dataset.colorMode;
+    if (mode === "dark") return true;
+    if (mode === "light") return false;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+
   // ── Age badge colors (PR list) ────────────────────────────────────────────
   // Matches the style seen in PR Pulse: pill badge next to PR title
 
   function getAgeStyle(days) {
-    if (days <= 3) return { bg: "#dafbe1", fg: "#1a7f37", border: "#1a7f37" };
-    if (days <= 7) return { bg: "#fff8c5", fg: "#9a6700", border: "#9a6700" };
+    if (isDark()) {
+      if (days <= 3)  return { bg: "#1a3a29", fg: "#56d364", border: "#238636" };
+      if (days <= 7)  return { bg: "#2d2000", fg: "#e3b341", border: "#9e6a03" };
+      if (days <= 14) return { bg: "#2d1200", fg: "#f0883e", border: "#bd561d" };
+      if (days <= 30) return { bg: "#3d1111", fg: "#f85149", border: "#da3633" };
+      return                 { bg: "#3d0a0a", fg: "#ff9492", border: "#b62324" };
+    }
+    if (days <= 3)  return { bg: "#dafbe1", fg: "#1a7f37", border: "#1a7f37" };
+    if (days <= 7)  return { bg: "#fff8c5", fg: "#9a6700", border: "#9a6700" };
     if (days <= 14) return { bg: "#fff1e5", fg: "#cf6c0f", border: "#cf6c0f" };
     if (days <= 30) return { bg: "#ffebe9", fg: "#d1242f", border: "#d1242f" };
-    return { bg: "#ffebe9", fg: "#6e1c1c", border: "#6e1c1c" };
+    return                 { bg: "#ffebe9", fg: "#6e1c1c", border: "#6e1c1c" };
   }
 
   function renderAgeBadges() {
@@ -74,17 +88,29 @@
   // ── Size badge (PR detail page) ───────────────────────────────────────────
   // Uses GitHub API since line counts aren't in the DOM
 
-  const SIZES = [
-    { label: "XS", max: 10, bg: "#1a7f37", fg: "#fff" },
-    { label: "S", max: 50, bg: "#4c9d0e", fg: "#fff" },
-    { label: "M", max: 250, bg: "#9a6700", fg: "#fff" },
-    { label: "L", max: 500, bg: "#cf6c0f", fg: "#fff" },
-    { label: "XL", max: 1000, bg: "#d1242f", fg: "#fff" },
-    { label: "XXL", max: Infinity, bg: "#6e1c1c", fg: "#fff" },
-  ];
+  function getSizes() {
+    return isDark()
+      ? [
+          { label: "XS",  max: 10,       bg: "#238636", fg: "#fff" },
+          { label: "S",   max: 50,       bg: "#347d39", fg: "#fff" },
+          { label: "M",   max: 250,      bg: "#9e6a03", fg: "#fff" },
+          { label: "L",   max: 500,      bg: "#bd561d", fg: "#fff" },
+          { label: "XL",  max: 1000,     bg: "#da3633", fg: "#fff" },
+          { label: "XXL", max: Infinity, bg: "#b62324", fg: "#fff" },
+        ]
+      : [
+          { label: "XS",  max: 10,       bg: "#1a7f37", fg: "#fff" },
+          { label: "S",   max: 50,       bg: "#4c9d0e", fg: "#fff" },
+          { label: "M",   max: 250,      bg: "#9a6700", fg: "#fff" },
+          { label: "L",   max: 500,      bg: "#cf6c0f", fg: "#fff" },
+          { label: "XL",  max: 1000,     bg: "#d1242f", fg: "#fff" },
+          { label: "XXL", max: Infinity, bg: "#6e1c1c", fg: "#fff" },
+        ];
+  }
 
   function getSize(lines) {
-    return SIZES.find((s) => lines <= s.max) ?? SIZES.at(-1);
+    const sizes = getSizes();
+    return sizes.find((s) => lines <= s.max) ?? sizes.at(-1);
   }
 
   async function getOrPromptToken() {
