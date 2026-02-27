@@ -77,3 +77,45 @@ The token is stored locally via `GM_getValue` / `GM_setValue` (never leaves your
 | Review / CI status         | ✅                        | —                            | —                       |
 
 The script is intentionally focused: it adds the two most actionable at-a-glance signals (age + size) without requiring you to configure CI on every repo or install a Chrome-only extension.
+
+For Userscript the valid keys and grants for metadata are:
+
+```js
+export const validGrants = new Set([
+  "GM.info",
+  "GM_info",
+  "GM.addStyle",
+  "GM.openInTab",
+  "GM.closeTab",
+  "GM.setValue",
+  "GM.getValue",
+  "GM.deleteValue",
+  "GM.listValues",
+  "GM.setClipboard",
+  "GM.getTab",
+  "GM.saveTab",
+  "GM_xmlhttpRequest",
+  "GM.xmlHttpRequest",
+  "none",
+]);
+
+export const validMetaKeys = new Set([
+  "author",
+  "description",
+  "downloadURL",
+  "exclude",
+  "exclude-match",
+  "grant",
+  "icon",
+  "include",
+  "inject-into",
+  "match",
+  "name",
+  "noframes",
+  "require",
+  "run-at",
+  "updateURL",
+  "version",
+  "weight",
+]);
+```
