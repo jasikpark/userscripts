@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GitHub PR Size
 // @namespace    https://jasik.xyz
-// @version      1.1.0
+// @version      1.2.0
 // @description  Age badges on PR list + size badge on PR detail (matches team PR-Metrics thresholds). Requires Safari 15.4+ / Chrome 92+.
 // @match        https://github.com/*/*/pull/*
 // @match        https://github.com/*/*/pulls*
@@ -157,10 +157,13 @@
   }
 
   function renderSizeBadge({ additions, deletions, changed_files }) {
+    if (document.querySelector(".gh-pr-size")) return; // already rendered
+
     const totalLines = additions + deletions;
     const size = getSize(totalLines);
 
     const badge = document.createElement("span");
+    badge.className = "gh-pr-size";
     badge.title = `${totalLines.toLocaleString()} lines (${additions.toLocaleString()}+ / ${deletions.toLocaleString()}−) across ${changed_files} files`;
     badge.style.cssText = [
       "display: inline-flex",
@@ -179,16 +182,35 @@
     badge.textContent = `size/${size.label}`;
 
     const titleEl = document.querySelector(
-      '.js-issue-title, [data-testid="issue-title"], h1.gh-header-title',
+      'h1[class*="prc-PageHeader-Title"], .js-issue-title, [data-testid="issue-title"], h1.gh-header-title',
     );
-    if (titleEl) titleEl.appendChild(badge);
+    if (!titleEl) return;
+    titleEl.insertAdjacentElement("afterend", badge);
+
+    // Re-inject if React hydration removes our badge
+    const removalObserver = new MutationObserver(() => {
+      if (!document.contains(badge)) {
+        removalObserver.disconnect();
+        if (cachedPr) renderSizeBadge(cachedPr);
+      }
+    });
+    removalObserver.observe(document.body, { childList: true, subtree: true });
   }
 
+  let cachedPr = null;
+  let cachedPrPath = null;
+
   async function runSizeBadge(owner, repo, prNumber) {
+    if (cachedPr && cachedPrPath === location.pathname) {
+      renderSizeBadge(cachedPr);
+      return;
+    }
     const token = await getOrPromptToken();
     if (!token) return;
     try {
       const pr = await fetchPR(owner, repo, prNumber, token);
+      cachedPrPath = location.pathname;
+      cachedPr = pr;
       renderSizeBadge(pr);
     } catch (err) {
       console.warn("[GitHub PR Size]", err.message);
@@ -197,21 +219,33 @@
 
   // ── Route ─────────────────────────────────────────────────────────────────
 
-  const detailMatch = location.pathname.match(
-    /^\/([^/]+)\/([^/]+)\/pull\/(\d+)\/?$/,
-  );
-  const listMatch = location.pathname.match(/^\/([^/]+)\/([^/]+)\/pulls/);
+  let listObserver = null;
 
-  if (detailMatch) {
-    const [, owner, repo, prNumber] = detailMatch;
-    runSizeBadge(owner, repo, prNumber);
-  } else if (listMatch) {
-    // DOM is already rendered; run immediately then watch for filter/page changes
-    renderAgeBadges();
-    new MutationObserver(renderAgeBadges).observe(
-      document.querySelector(".js-issue-list, #js-issues-toolbar") ??
-        document.body,
-      { childList: true, subtree: true },
+  function run() {
+    if (listObserver) {
+      listObserver.disconnect();
+      listObserver = null;
+    }
+
+    const detailMatch = location.pathname.match(
+      /^\/([^/]+)\/([^/]+)\/pull\/(\d+)\/?$/,
     );
+    const listMatch = location.pathname.match(/^\/([^/]+)\/([^/]+)\/pulls/);
+
+    if (detailMatch) {
+      const [, owner, repo, prNumber] = detailMatch;
+      runSizeBadge(owner, repo, prNumber);
+    } else if (listMatch) {
+      renderAgeBadges();
+      listObserver = new MutationObserver(renderAgeBadges);
+      listObserver.observe(
+        document.querySelector(".js-issue-list, #js-issues-toolbar") ??
+          document.body,
+        { childList: true, subtree: true },
+      );
+    }
   }
+
+  run();
+  document.addEventListener("turbo:load", run);
 })();
