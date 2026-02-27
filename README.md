@@ -57,7 +57,7 @@ On the first visit to a PR detail page the script prompts for a **fine-grained P
 
 1. Go to **GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens**
 2. Create a token scoped to the repositories you want metrics for
-3. Required permission: **Contents — Read-only** (or `repo` for classic tokens)
+3. Required permission: **Pull requests — Read-only** (or `repo` for classic tokens)
 4. Paste the token into the prompt
 
 The token is stored locally via `GM_getValue` / `GM_setValue` (never leaves your browser). To clear it and re-enter, open the Tampermonkey dashboard → Storage and delete the `github_pat` key, or simply visit any PR and enter an empty value when prompted on the next auth failure.
@@ -119,3 +119,7 @@ export const validMetaKeys = new Set([
   "weight",
 ]);
 ```
+
+# TODO
+
+- [ ] Add support for https://github.com/pulls?q=sort%3Aupdated-desc+is%3Apr+is%3Aopen+author%3A%40me+archived%3Afalse

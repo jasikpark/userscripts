@@ -2,13 +2,12 @@
 // @name         GitHub PR Size
 // @namespace    https://jasik.xyz
 // @version      1.1.0
-// @description  Age badges on PR list + size badge on PR detail (matches team PR-Metrics thresholds)
+// @description  Age badges on PR list + size badge on PR detail (matches team PR-Metrics thresholds). Requires Safari 15.4+ / Chrome 92+.
 // @match        https://github.com/*/*/pull/*
 // @match        https://github.com/*/*/pulls*
 // @grant        GM.xmlHttpRequest
 // @grant        GM.getValue
 // @grant        GM.setValue
-// @connect      api.github.com
 // ==/UserScript==
 
 (() => {
@@ -88,15 +87,16 @@
     return SIZES.find((s) => lines <= s.max) ?? SIZES.at(-1);
   }
 
-  function getOrPromptToken() {
-    let token = GM_getValue("github_pat", "");
+  async function getOrPromptToken() {
+    let token = await GM.getValue("github_pat", "");
     if (!token) {
       token = prompt(
         "GitHub PR Size: Enter a Personal Access Token\n" +
-          "(Settings → Developer settings → Fine-grained tokens → Contents: read)\n\n" +
+          "• Fine-grained token: Pull requests → Read-only (personal repos only)\n" +
+          "• Classic token: repo scope (required for org repos)\n\n" +
           "Stored locally, only used to read PR stats from api.github.com.",
       );
-      if (token) GM_setValue("github_pat", token.trim());
+      if (token) await GM.setValue("github_pat", token.trim());
     }
     return token;
   }
@@ -113,7 +113,7 @@
         },
         onload(r) {
           if (r.status === 401 || r.status === 403) {
-            GM_setValue("github_pat", "");
+            GM.setValue("github_pat", "");
             reject(
               new Error(
                 `Auth failed (${r.status}) — token cleared, refresh to re-enter`,
@@ -159,7 +159,7 @@
   }
 
   async function runSizeBadge(owner, repo, prNumber) {
-    const token = getOrPromptToken();
+    const token = await getOrPromptToken();
     if (!token) return;
     try {
       const pr = await fetchPR(owner, repo, prNumber, token);
