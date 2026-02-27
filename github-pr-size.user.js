@@ -12,6 +12,12 @@
 // ==/UserScript==
 
 (() => {
+  // ── Shared selectors ──────────────────────────────────────────────────────
+  const ROW_SELECTOR =
+    "[id^='issue_'], .js-issue-row, [data-hovercard-type='pull_request']";
+  const TITLE_LINK_SELECTOR =
+    "a.markdown-title, a[data-hovercard-type='pull_request'], .js-issue-row-title a";
+
   function isDark() {
     const mode = document.documentElement.dataset.colorMode;
     if (mode === "dark") return true;
@@ -39,9 +45,7 @@
 
   function renderAgeBadges() {
     // Each PR row on the list page
-    const rows = document.querySelectorAll(
-      "[id^='issue_'], .js-issue-row, [data-hovercard-type='pull_request']",
-    );
+    const rows = document.querySelectorAll(ROW_SELECTOR);
 
     rows.forEach((row) => {
       if (row.querySelector(".gh-pr-age")) return; // already added
@@ -84,7 +88,7 @@
 
       // Insert after the PR title link
       const titleEl = row.querySelector(
-        "a.markdown-title, a[data-hovercard-type='pull_request'], .js-issue-row-title a",
+        TITLE_LINK_SELECTOR,
       );
       if (titleEl) titleEl.insertAdjacentElement("afterend", badge);
     });
@@ -166,32 +170,9 @@
     );
   }
 
-  function renderSizeBadge({ additions, deletions, changed_files }) {
-    if (document.querySelector(".gh-pr-size")) return; // already rendered
+  // ── Shared tooltip helper ─────────────────────────────────────────────────
 
-    const totalLines = additions + deletions;
-    const score = complexityScore(totalLines, changed_files);
-    const tier = getTier(score);
-
-    const badge = document.createElement("span");
-    badge.className = "gh-pr-size";
-    badge.style.cssText = [
-      "display: inline-flex",
-      "align-items: center",
-      "justify-content: center",
-      "padding: 0 12px",
-      "height: 32px",
-      "border-radius: 999px",
-      `background: ${tier.bg}`,
-      `color: ${tier.fg}`,
-      "font-size: 14px",
-      "font-weight: 600",
-      "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      "cursor: default",
-    ].join("; ");
-    badge.textContent = tier.label;
-
-    // ── Popover tooltip ───────────────────────────────────────────────────────
+  function createTooltip(badge, score, additions, deletions, changed_files) {
     const tooltip = document.createElement("div");
     tooltip.popover = "manual";
     tooltip.style.cssText = [
@@ -220,7 +201,8 @@
       `<div style="color:#8b949e;font-size:11px">\u26a1 github-pr-size</div>`;
     document.body.appendChild(tooltip);
 
-    function positionTooltip() {
+    badge.addEventListener("mouseenter", () => {
+      tooltip.showPopover();
       const r = badge.getBoundingClientRect();
       let top = r.bottom + 8;
       let left = r.left;
@@ -230,13 +212,39 @@
         left = window.innerWidth - tooltip.offsetWidth - 8;
       tooltip.style.top = `${top}px`;
       tooltip.style.left = `${left}px`;
-    }
-
-    badge.addEventListener("mouseenter", () => {
-      tooltip.showPopover();
-      positionTooltip();
     });
     badge.addEventListener("mouseleave", () => tooltip.hidePopover());
+
+    return tooltip;
+  }
+
+  function renderSizeBadge({ additions, deletions, changed_files }) {
+    if (document.querySelector(".gh-pr-size")) return; // already rendered
+
+    const totalLines = additions + deletions;
+    const score = complexityScore(totalLines, changed_files);
+    const tier = getTier(score);
+
+    const badge = document.createElement("span");
+    badge.className = "gh-pr-size";
+    badge.style.cssText = [
+      "display: inline-flex",
+      "align-items: center",
+      "justify-content: center",
+      "padding: 0 12px",
+      "height: 32px",
+      "border-radius: 999px",
+      `background: ${tier.bg}`,
+      `color: ${tier.fg}`,
+      "font-size: 14px",
+      "font-weight: 600",
+      "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      "cursor: default",
+    ].join("; ");
+    badge.textContent = tier.label;
+
+    // ── Popover tooltip ───────────────────────────────────────────────────────
+    const tooltip = createTooltip(badge, score, additions, deletions, changed_files);
 
     const stateEl = document.querySelector(
       "span[data-status], .State, .gh-header-meta .State",
@@ -287,51 +295,11 @@
     ].join("; ");
     badge.textContent = tier.label;
 
-    const tooltip = document.createElement("div");
-    tooltip.popover = "manual";
-    tooltip.style.cssText = [
-      "position: fixed",
-      "inset: unset",
-      "margin: 0",
-      "background: #161b22",
-      "border: 1px solid #30363d",
-      "border-radius: 8px",
-      "padding: 12px 16px",
-      "color: #e6edf3",
-      "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      "font-size: 13px",
-      "line-height: 1.5",
-      "width: max-content",
-      "max-width: 220px",
-      "box-shadow: 0 8px 24px rgba(0,0,0,0.5)",
-      "pointer-events: none",
-      "z-index: 10000",
-    ].join("; ");
-    tooltip.innerHTML =
-      `<div style="font-weight:600;margin-bottom:4px">Complexity Score: ${score}/100</div>` +
-      `<div>Files: ${changed_files}</div>` +
-      `<div>Lines: +${additions.toLocaleString()} / \u2212${deletions.toLocaleString()}</div>` +
-      `<hr style="border:none;border-top:1px solid #30363d;margin:8px 0 6px">` +
-      `<div style="color:#8b949e;font-size:11px">\u26a1 github-pr-size</div>`;
-    document.body.appendChild(tooltip);
-
-    badge.addEventListener("mouseenter", () => {
-      tooltip.showPopover();
-      const r = badge.getBoundingClientRect();
-      let top = r.bottom + 8;
-      let left = r.left;
-      if (top + tooltip.offsetHeight > window.innerHeight - 8)
-        top = r.top - tooltip.offsetHeight - 8;
-      if (left + tooltip.offsetWidth > window.innerWidth - 8)
-        left = window.innerWidth - tooltip.offsetWidth - 8;
-      tooltip.style.top = `${top}px`;
-      tooltip.style.left = `${left}px`;
-    });
-    badge.addEventListener("mouseleave", () => tooltip.hidePopover());
+    createTooltip(badge, score, additions, deletions, changed_files);
 
     const ageBadge = row.querySelector(".gh-pr-age");
     const titleEl = row.querySelector(
-      "a.markdown-title, a[data-hovercard-type='pull_request'], .js-issue-row-title a",
+      TITLE_LINK_SELECTOR,
     );
     if (ageBadge) ageBadge.insertAdjacentElement("afterend", badge);
     else if (titleEl) titleEl.insertAdjacentElement("afterend", badge);
@@ -341,15 +309,13 @@
     const token = await GM.getValue("github_pat", "");
     if (!token) return;
 
-    const rows = document.querySelectorAll(
-      "[id^='issue_'], .js-issue-row, [data-hovercard-type='pull_request']",
-    );
+    const rows = document.querySelectorAll(ROW_SELECTOR);
 
     rows.forEach((row) => {
       if (row.querySelector(".gh-pr-complexity")) return;
 
       const titleEl = row.querySelector(
-        "a.markdown-title, a[data-hovercard-type='pull_request'], .js-issue-row-title a",
+        TITLE_LINK_SELECTOR,
       );
       if (!titleEl) return;
 
