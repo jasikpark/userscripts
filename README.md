@@ -77,3 +77,9 @@ The token is stored locally via `GM.getValue` / `GM.setValue` (never leaves your
 | Review / CI status         | ✅                        | —                            | —                       |
 
 The script is intentionally focused: it adds the two most actionable at-a-glance signals (age + size) without requiring you to configure CI on every repo or install a Chrome-only extension.
+
+## Roadmap
+
+### Add support to the homepage
+
+On the homepage, there's a short PRs list, maybe we should add it there?
