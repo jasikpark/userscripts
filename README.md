@@ -83,55 +83,13 @@ The script is intentionally focused: it adds the two most actionable at-a-glance
 ## Roadmap
 
 ### Complexity badge on PR list
+
 A file-count-based Low / Med / High / Critical badge on each list row, inspired by PR Pulse's complexity score. Thresholds (approximate): Low 0–25 files, Med 26–50, High 51–75, Critical 76+. Would require an API call per visible PR row — needs rate-limit consideration.
 
 ### Richer size badge tooltip
+
 The current tooltip shows lines and file count. Could add a computed complexity score (0–100) to match PR Pulse's `Complexity Score: 85/100 / Files: 30 / Lines: +651 / −56` hover breakdown.
 
 ### Configurable thresholds
+
 Store user preferences via `GM.getValue` / `GM.setValue` so age thresholds (e.g. green ≤ 24 h, yellow ≤ 72 h) and size/complexity breakpoints can be adjusted without editing the script.
-
----
-
-For Userscript the valid keys and grants for metadata are:
-
-```js
-export const validGrants = new Set([
-  "GM.info",
-  "GM_info",
-  "GM.addStyle",
-  "GM.openInTab",
-  "GM.closeTab",
-  "GM.setValue",
-  "GM.getValue",
-  "GM.deleteValue",
-  "GM.listValues",
-  "GM.setClipboard",
-  "GM.getTab",
-  "GM.saveTab",
-  "GM_xmlhttpRequest",
-  "GM.xmlHttpRequest",
-  "none",
-]);
-
-export const validMetaKeys = new Set([
-  "author",
-  "description",
-  "downloadURL",
-  "exclude",
-  "exclude-match",
-  "grant",
-  "icon",
-  "include",
-  "inject-into",
-  "match",
-  "name",
-  "noframes",
-  "require",
-  "run-at",
-  "updateURL",
-  "version",
-  "weight",
-]);
-```
-
