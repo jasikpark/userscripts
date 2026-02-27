@@ -1,11 +1,11 @@
 # GitHub PR Size — Userscript
 
-A [Tampermonkey](https://www.tampermonkey.net/) / [Violentmonkey](https://violentmonkey.github.io/) userscript that brings two quality-of-life overlays to GitHub:
+A [Tampermonkey](https://www.tampermonkey.net/) / [Violentmonkey](https://violentmonkey.github.io/) userscript that adds two at-a-glance overlays to GitHub PR pages.
 
-- **Age badges** on the PR list — inspired by [PR Pulse](https://chromewebstore.google.com/detail/pr-pulse/ffmlmohnpbpplgcmkjlojmbaaeephblg) / [PR Pulse by CodePulse](https://chromewebstore.google.com/detail/pr-pulse-by-codepulse/gilemckpkkljmdmhgnangdembehklimi)
-- **Size badges** on the PR detail page — thresholds aligned with [microsoft/PR-Metrics](https://github.com/microsoft/PR-Metrics)
+- **Age badges** on PR lists — how long has this been open?
+- **Complexity badges** on PR lists and detail pages — how big/risky is this change?
 
-No Chrome extension required. Works anywhere Tampermonkey or Violentmonkey runs (Chrome, Firefox, Edge, Safari).
+No Chrome extension required. Tested with [Userscripts](https://github.com/quoid/userscripts) on macOS; should work anywhere Tampermonkey or Violentmonkey runs (Chrome, Firefox, Edge, Safari).
 
 ---
 
@@ -13,7 +13,7 @@ No Chrome extension required. Works anywhere Tampermonkey or Violentmonkey runs 
 
 ### PR List — Age Badges
 
-Each PR in `github.com/*/pulls` gets a colour-coded pill showing how many days it has been open.
+Each PR in `github.com/*/pulls` gets a colour-coded pill showing how long it has been open.
 
 | Age    | Colour   | Meaning                        |
 | ------ | -------- | ------------------------------ |
@@ -23,63 +23,63 @@ Each PR in `github.com/*/pulls` gets a colour-coded pill showing how many days i
 | ≤ 30 d | Red      | Overdue                        |
 | > 30 d | Dark red | Long-running — review priority |
 
-### PR Detail — Size Badges
+Inspired by [PR Pulse](https://chromewebstore.google.com/detail/pr-pulse/ffmlmohnpbpplgcmkjlojmbaaeephblg).
 
-On a single PR page (`github.com/*/pull/123`) a `size/XS` … `size/XXL` badge is appended to the PR title, mirroring the label that [microsoft/PR-Metrics](https://github.com/microsoft/PR-Metrics) adds automatically in CI.
+### PR List + PR Detail — Complexity Badges
 
-| Label      | Total lines changed | Colour     |
-| ---------- | ------------------- | ---------- |
-| `size/XS`  | ≤ 10                | Dark green |
-| `size/S`   | ≤ 50                | Green      |
-| `size/M`   | ≤ 250               | Yellow     |
-| `size/L`   | ≤ 500               | Orange     |
-| `size/XL`  | ≤ 1 000             | Red        |
-| `size/XXL` | > 1 000             | Dark red   |
+A **Low / Medium / High / Critical** badge appears next to each PR title on list pages, and next to the PR status badge on the detail page.
 
-> **Note:** These thresholds differ from the microsoft/PR-Metrics _defaults_ (base 200, growth ×2). Edit the `SIZES` array in the script to match whatever your team has configured in CI.
+| Label      | Score  | Colour |
+| ---------- | ------ | ------ |
+| `Low`      | ≤ 25   | Green  |
+| `Medium`   | ≤ 50   | Blue   |
+| `High`     | ≤ 75   | Orange |
+| `Critical` | > 75   | Red    |
 
-Hovering the badge shows the full breakdown: `+additions / −deletions` and file count.
+Score formula (0–100):
+
+```
+score = (changed_files / 20) × 50 + (total_lines / 1000) × 50
+```
+
+Hovering the badge shows the full breakdown: complexity score, file count, and `+additions / −deletions`.
 
 ---
 
 ## Installation
 
-1. Install [Tampermonkey](https://www.tampermonkey.net/) or [Violentmonkey](https://violentmonkey.github.io/) in your browser. Or https://github.com/quoid/userscripts
-2. Open [`github-pr-size.user.js`](./github-pr-size.user.js) — your userscript manager will detect the `// ==UserScript==` header and offer to install it. Click **Install**.
+1. Install [Userscripts](https://github.com/quoid/userscripts) (macOS, tested), [Tampermonkey](https://www.tampermonkey.net/), or [Violentmonkey](https://violentmonkey.github.io/) in your browser.
+2. Click the raw link below — your userscript manager will detect the `// ==UserScript==` header and offer to install it:
+
+   **[Install github-pr-size.user.js](https://raw.githubusercontent.com/jasikpark/userscripts/main/github-pr-size.user.js)**
 
 ---
 
 ## Setup — GitHub Personal Access Token
 
-The size badge reads PR stats from the GitHub API, which requires authentication.
+The complexity badge reads PR stats from the GitHub API, which requires authentication.
 
-On the first visit to a PR detail page the script prompts for a **fine-grained Personal Access Token**:
+On the first visit to a PR detail page the script prompts for a **Personal Access Token**:
 
 1. Go to **GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens**
 2. Create a token scoped to the repositories you want metrics for
 3. Required permission: **Pull requests — Read-only** (or `repo` for classic tokens)
 4. Paste the token into the prompt
 
-The token is stored locally via `GM.getValue` / `GM.setValue` (never leaves your browser). To clear it and re-enter, open the Tampermonkey dashboard → Storage and delete the `github_pat` key, or simply visit any PR and enter an empty value when prompted on the next auth failure.
+The token is stored locally via `GM.getValue` / `GM.setValue` and never leaves your browser. To clear it, open the Tampermonkey/Violentmonkey dashboard → Storage and delete the `github_pat` key, or visit any PR and submit an empty value when prompted after an auth failure.
+
+> **Note:** Complexity badges on the PR list page are skipped silently if no token is stored yet. Visit any PR detail page first to set your token.
 
 ---
 
 ## How It Relates to PR Pulse & microsoft/PR-Metrics
 
-| Capability                 | PR Pulse (extension)      | microsoft/PR-Metrics (CI)    | This script             |
-| -------------------------- | ------------------------- | ---------------------------- | ----------------------- |
-| PR age visibility          | ✅ colour-coded staleness | —                            | ✅ age badge on list    |
-| PR size label              | —                         | ✅ adds `size/*` label in CI | ✅ badge on detail page |
-| Requires CI setup          | —                         | ✅                           | —                       |
-| Requires browser extension | ✅                        | —                            | Userscript manager only |
-| Works on all GitHub repos  | ✅                        | Configured per-repo          | ✅                      |
-| Jira integration           | ✅                        | —                            | —                       |
-| Review / CI status         | ✅                        | —                            | —                       |
-
-The script is intentionally focused: it adds the two most actionable at-a-glance signals (age + size) without requiring you to configure CI on every repo or install a Chrome-only extension.
-
-## Roadmap
-
-### Add support to the homepage
-
-On the homepage, there's a short PRs list, maybe we should add it there?
+| Capability                 | PR Pulse (extension)      | microsoft/PR-Metrics (CI)    | This script                     |
+| -------------------------- | ------------------------- | ---------------------------- | ------------------------------- |
+| PR age visibility          | ✅ colour-coded staleness | —                            | ✅ age badge on list            |
+| PR complexity / size       | —                         | ✅ adds `size/*` label in CI | ✅ complexity badge on list + detail |
+| Requires CI setup          | —                         | ✅                           | —                               |
+| Requires browser extension | ✅                        | —                            | Userscript manager only         |
+| Works on all GitHub repos  | ✅                        | Configured per-repo          | ✅                              |
+| Jira integration           | ✅                        | —                            | —                               |
+| Review / CI status         | ✅                        | —                            | —                               |
