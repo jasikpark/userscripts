@@ -5,9 +5,9 @@
 // @description  Age badges on PR list + size badge on PR detail (matches team PR-Metrics thresholds)
 // @match        https://github.com/*/*/pull/*
 // @match        https://github.com/*/*/pulls*
-// @grant        GM_xmlhttpRequest
-// @grant        GM_getValue
-// @grant        GM_setValue
+// @grant        GM.xmlHttpRequest
+// @grant        GM.getValue
+// @grant        GM.setValue
 // @connect      api.github.com
 // ==/UserScript==
 
@@ -103,7 +103,7 @@
 
   function fetchPR(owner, repo, prNumber, token) {
     return new Promise((resolve, reject) => {
-      GM_xmlhttpRequest({
+      GM.xmlHttpRequest({
         method: "GET",
         url: `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}`,
         headers: {
