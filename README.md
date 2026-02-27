@@ -82,9 +82,6 @@ The script is intentionally focused: it adds the two most actionable at-a-glance
 
 ## Roadmap
 
-### Age badge: show hours for fresh PRs
-Currently a PR opened 2 hours ago shows `0d`. Should show `2h` (or similar) for PRs under 24 hours old, matching PR Pulse's behaviour.
-
 ### Complexity badge on PR list
 A file-count-based Low / Med / High / Critical badge on each list row, inspired by PR Pulse's complexity score. Thresholds (approximate): Low 0–25 files, Med 26–50, High 51–75, Critical 76+. Would require an API call per visible PR row — needs rate-limit consideration.
 
