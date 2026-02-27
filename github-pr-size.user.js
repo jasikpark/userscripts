@@ -53,13 +53,17 @@
       if (!timeEl) return;
 
       const openedAt = new Date(timeEl.getAttribute("datetime"));
-      const days = Math.floor((Date.now() - openedAt) / 86_400_000);
-      const label = days >= 99 ? "99d+" : `${days}d`;
+      const ageMs = Date.now() - openedAt;
+      const hours = Math.floor(ageMs / 3_600_000);
+      const days = Math.floor(ageMs / 86_400_000);
+      const label = days >= 99 ? "99d+" : hours < 1 ? "<1h" : hours < 24 ? `${hours}h` : `${days}d`;
       const { bg, fg, border } = getAgeStyle(days);
 
       const badge = document.createElement("span");
       badge.className = "gh-pr-age";
-      badge.title = `Open for ${days} day${days === 1 ? "" : "s"}`;
+      badge.title = hours < 24
+        ? `Open for ${hours} hour${hours === 1 ? "" : "s"}`
+        : `Open for ${days} day${days === 1 ? "" : "s"}`;
       badge.style.cssText = [
         "display: inline-flex",
         "align-items: center",
